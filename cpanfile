@@ -1,0 +1,10 @@
+requires 'Moose';
+requires 'OX';
+requires 'OX::RouteBuilder::REST';
+requires 'Plack::Request';
+requires 'HTTP::Throwable::Factory';
+requires 'JSON::XS';
+requires 'Time::Piece';
+requires 'File::HomeDir';
+requires 'Path::Class';
+requires 'Text::Haml';

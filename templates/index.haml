@@ -1,0 +1,84 @@
+!!! 5
+%html
+  %head
+    %title Current weight
+    %link(rel="stylesheet" href="/static/bootstrap.min.css")
+    %link(rel="stylesheet" href="/static/rickshaw.min.css")
+    %link(rel="icon" href="/static/favicon.png" type="image/png")
+    %script(src="/static/d3.min.js")
+    %script(src="/static/d3.layout.min.js")
+    %script(src="/static/rickshaw.min.js")
+    %script(src="/static/jquery-latest.min.js")
+    :css
+      #chart_container {
+        position: relative;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      #chart {
+        position: relative;
+        left: 40px;
+      }
+      #y_axis {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+      }
+  %body
+    %div.container
+      %h1 Weight overview!
+      %p
+        %code Current time is: #{localtime}
+      %form{:class=>'form-inline'}
+        %div{:class=>'form-group'}
+          %input{:type=>"text", :required => true, :id => 'date', :placeholder => $today, :value => $today}
+        %div{:class=>'form-group'}
+          %input{:type=>"text", :required => true, :id => 'weight', :placeholder => 'Weight'}
+        %button{:type=>"button", :class=>'btn btn-default', :id=>'addbtn'} Submit
+      %hr
+      %div#chart_container
+        %div#y_axis
+        %div#chart
+    :javascript
+      $('#addbtn').click(function() {
+        var date = $('input#date').val();
+        var weight = $('input#weight').val();
+        $.post("/weight/"+date, { weight: weight })
+          .done(function(data) {
+            window.alert("Saved new data...");
+            window.location.href = window.location.href;
+          })
+          .fail(function(data) {
+            window.alert('An error occured: ' + data.responseText);
+          });
+      });
+
+      $.getJSON("/weight", function(data) {
+        var graph = new Rickshaw.Graph( {
+          element: document.querySelector("#chart"),
+          width: 640,
+          height: 480,
+          min: 'auto',
+          renderer: 'line',
+          series: [ {
+            color: 'steelblue',
+            data: data,
+            name: 'Weight'
+          } ]
+        } );
+        var x_axis = new Rickshaw.Graph.Axis.X({
+          graph: graph,
+          tickFormat: function(x){
+            return new Date(x * 1000).toJSON().slice(0,10);
+          }
+        });
+        var y_axis = new Rickshaw.Graph.Axis.Y( {
+          graph: graph,
+          orientation: 'left',
+          tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+          element: document.getElementById('y_axis'),
+        } );
+        var hoverDetail = new Rickshaw.Graph.HoverDetail( {graph: graph});
+
+        graph.render();
+      });
